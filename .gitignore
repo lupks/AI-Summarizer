@@ -1,9 +1,9 @@
 venv/
 model/
+.idea/
 
 .DS_Store
 
 *.pyc
 *.pyo
 __pycache__/
-.idea/
