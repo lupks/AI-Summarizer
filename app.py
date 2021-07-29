@@ -1,12 +1,20 @@
 import os
 import torch
-from transformers import BartTokenizer, BartForConditionalGeneration
 from flask import Flask, request
 from datetime import datetime
+from transformers import BartTokenizer, BartForConditionalGeneration
 
-print('Loading model...')
-tokenizer = BartTokenizer.from_pretrained('./model')
-model = BartForConditionalGeneration.from_pretrained('./model')
+try:
+    print('Loading model...')
+    tokenizer = BartTokenizer.from_pretrained('./model')
+    model = BartForConditionalGeneration.from_pretrained('./model')
+except:
+    print('No model found, downloading...')
+    tokenizer = BartTokenizer.from_pretrained('facebook/bart-large-cnn')
+    tokenizer.save_pretrained("./model")
+    model = BartForConditionalGeneration.from_pretrained('facebook/bart-large-cnn')
+    model.save_pretrained("./model")
+    print('Done!\nLoading model...')
 
 
 def save_backup(text):
@@ -48,7 +56,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return "Congratulations, it's a web app!"
+    return "Request (200)\n"
 
 
 @app.route('/summarize', methods=['POST', 'GET'])
@@ -56,9 +64,12 @@ def summarize():
     query = request.args.get('text')
 
     if isinstance(query, list):
-        query = '\n\n'.join(query)
+        list_sums = []
+        for q in query:
+            list_sums.append(make_summary(q))
 
-    print(query)
+        query = '\n\n'.join(list_sums)
+
     sum_text = make_summary(query)
     save_backup(sum_text)
 
